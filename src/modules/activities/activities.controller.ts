@@ -22,9 +22,9 @@ export class ActivitiesController {
     return this.activitiesService.findOne(+id);
   }
 
-  @Put(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateActivityDto) {
-    return this.activitiesService.update(+id, dto);
+  @Put()
+  update( @Body() dto: UpdateActivityDto) {
+    return this.activitiesService.update(dto);
   }
 
   @Delete(':id')

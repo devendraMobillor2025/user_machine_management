@@ -22,9 +22,9 @@ export class ReportController {
     return this.reportService.findOne(+id);
   }
 
-  @Put(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateReportDto) {
-    return this.reportService.update(+id, dto);
+  @Put()
+  update( @Body() dto: UpdateReportDto) {
+    return this.reportService.update( dto);
   }
 
   @Delete(':id')

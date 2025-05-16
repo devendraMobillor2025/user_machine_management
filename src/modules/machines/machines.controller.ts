@@ -22,9 +22,9 @@ export class MachinesController {
     return this.machinesService.findOne(+id);
   }
 
-  @Put(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateMachineDto) {
-    return this.machinesService.update(+id, dto);
+  @Put()
+  update(@Body() dto: UpdateMachineDto) {
+    return this.machinesService.update(dto);
   }
 
   @Delete(':id')

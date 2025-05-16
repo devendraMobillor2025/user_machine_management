@@ -49,6 +49,13 @@ export class UsersService {
 async findOne(id: number): Promise<{status:boolean; statusCode: number; message: string; data?: User | null }> {
   try {
     const user = await this.userRepo.findOneBy({ userId: id });
+    if (!id||id===undefined||null) {
+      return {
+        status:false,
+        statusCode: 400,
+        message: 'A valid user ID must be provided',
+        data: null,
+      };}
 
     if (!user) {
       return {
@@ -72,25 +79,44 @@ async findOne(id: number): Promise<{status:boolean; statusCode: number; message:
 }
 
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<{status:boolean;statusCode:number;message:string ;data?:User | null}> {
-   try {
-     if (updateUserDto.password) {
-      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
-    }
-    await this.userRepo.update(id, updateUserDto);
-    const updatedUser = await this.findOne(id);
-    if (!updatedUser) {
-      return {status:false, statusCode: 404, message: 'User not found' };
-    }
-    return { status:true ,statusCode: 200, message: 'User updated successfully', data: updatedUser.data };
+ async update(updateUserDto: UpdateUserDto): Promise<{
+  status: boolean;
+  statusCode: number;
+  message: string;
+  data?: User | null;
+}> {
+  try {
+     const { userId, password, ...rest } = updateUserDto;
 
-   } catch (error) {
-    if(error instanceof ConflictException){
-       throw error;
+    // Do not update password even if provided
+    // If you ever want to update password, use a separate endpoint
+    const updatePayload = { ...rest };
+
+    if (!userId) {
+      return { status: false, statusCode: 400, message: 'UserId is required in body' };
     }
-     throw new InternalServerErrorException('something went wrong while updating user');
-   }
+    await this.userRepo.update(userId, updatePayload);
+
+    const updatedUser = await this.findOne(userId);
+    if (!updatedUser) {
+      return { status: false, statusCode: 404, message: 'User not found' };
+    }
+
+    return {
+      status: true,
+      statusCode: 200,
+      message: 'User updated successfully',
+      data: updatedUser.data,
+    };
+  } catch (error) {
+    console.log(error)
+    if (error instanceof ConflictException) {
+      throw error;
+    }
+    throw new InternalServerErrorException('Something went wrong while updating user');
   }
+}
+
 
   
 async remove(id: number): Promise<{status:boolean, statusCode: number; message: string }> {

@@ -180,8 +180,13 @@ async findByUserId(userId: number) {
 }
 
 
-async update(id: number, dto: UpdateMachineUserMapDto) {
+async update(dto: UpdateMachineUserMapDto) {
   try {
+    const{machineAndUserMapId,...rest}=dto
+    const updatePayload={...rest}
+    if (!machineAndUserMapId) {
+      return { status: false, statusCode: 400, message: 'machineAndUserMapId is required in body' };
+    }
     // Check if user exists
     const user = await this.userRepo.findOneBy({ userId: dto.userId });
     if (!user) {
@@ -195,19 +200,19 @@ async update(id: number, dto: UpdateMachineUserMapDto) {
     }
 
     // Check if mapping exists
-    const existingMap = await this.machineUserMapRepo.findOneBy({ machineAndUserMapId: id });
+    const existingMap = await this.machineUserMapRepo.findOneBy({ machineAndUserMapId: machineAndUserMapId });
     if (!existingMap) {
       return { statusCode: 404, message: 'Mapping not found' };
     }
 
     // Update the mapping
-    const updateResult = await this.machineUserMapRepo.update(id, dto);
+    const updateResult = await this.machineUserMapRepo.update(machineAndUserMapId, updatePayload);
     if (updateResult.affected === 0) {
       return {status:false, statusCode: 500, message: 'Mapping update failed' };
     }
 
     const updated = await this.machineUserMapRepo.findOne({
-  where: { machineAndUserMapId: id },
+  where: { machineAndUserMapId: machineAndUserMapId },
   relations: ['user', 'machine'],
 });
 

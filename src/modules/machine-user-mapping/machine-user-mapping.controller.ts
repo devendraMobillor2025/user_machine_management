@@ -29,9 +29,9 @@ export class MachineUserMappingController {
   findByUserId(@Param('id') id: string) {
     return this.machineUserMappingService.findByUserId(+id);
   }
-  @Put(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateMachineUserMapDto) {
-    return this.machineUserMappingService.update(+id, dto);
+  @Put()
+  update( @Body() dto: UpdateMachineUserMapDto) {
+    return this.machineUserMappingService.update(dto);
   }
 
   @Delete(':id')

@@ -51,13 +51,18 @@ export class ActivitiesService {
     }
   }
 
-  async update(id: number, dto: UpdateActivityDto) {
+  async update( dto: UpdateActivityDto) {
     try {
-      const updatedActivity = await this.findOne(id);
+      const{activityId,...rest}=dto
+      const updatePayload={...rest}
+      if (!activityId) {
+      return { status: false, statusCode: 400, message: 'activityId is required in body' };
+    }
+      await this.activityRepo.update(activityId, updatePayload);
+      const updatedActivity = await this.findOne(activityId);
        if (!updatedActivity) {
         return {status:false, statusCode: 404, message: 'Activity not found' };
       }
-      await this.activityRepo.update(id, dto);
    
     return {status:true, statusCode: 200, message: 'Activity updated successfully', data: updatedActivity };
     } catch (error) {

@@ -138,17 +138,37 @@ const reports = await this.reportRepo.manager.query(`
 }
 
 
-async update(id: number, dto: UpdateReportDto): Promise<{status:boolean, statusCode: number; message: string; data?: any }> {
+async update(dto: UpdateReportDto): Promise<{ status: boolean; statusCode: number; message: string; data?: any }> {
   try {
-    const report = await this.reportRepo.findOne({ where: { reportOfTimeSpentId: id } });
+    const { reportOfTimeSpentId, ...rest } = dto;
+    const updatePayload = { ...rest };
+    
+
+    if (!reportOfTimeSpentId) {
+      return {
+        status: false,
+        statusCode: 400,
+        message: 'reportOfTimeSpentId is required in body',
+      };
+    }
+
+    const report = await this.reportRepo.findOne({ where: { reportOfTimeSpentId } });
     if (!report) {
-      return {status:false, statusCode: 404, message: 'Report not found' };
+      return {
+        status: false,
+        statusCode: 404,
+        message: 'Report not found',
+      };
     }
 
     if (dto.userId) {
       const user = await this.userRepo.findOne({ where: { userId: dto.userId } });
       if (!user) {
-        return {status:false, statusCode: 404, message: 'User not found' };
+        return {
+          status: false,
+          statusCode: 404,
+          message: 'User not found',
+        };
       }
       report.user = user;
     }
@@ -156,16 +176,19 @@ async update(id: number, dto: UpdateReportDto): Promise<{status:boolean, statusC
     if (dto.machineId) {
       const machine = await this.machineRepo.findOne({ where: { machineId: dto.machineId } });
       if (!machine) {
-        return {status:false, statusCode: 404, message: 'Machine not found' };
+        return {
+          status: false,
+          statusCode: 404,
+          message: 'Machine not found',
+        };
       }
       report.machine = machine;
     }
 
-    // Update other fields (e.g., timeSpent, date)
-    this.reportRepo.merge(report, dto);
+    // Update other fields
+    this.reportRepo.merge(report, updatePayload);
     await this.reportRepo.save(report);
 
-    // Return structured response like `findOne`
     const data = {
       reportId: report.reportOfTimeSpentId,
       timeSpent: report.timeSpent,
@@ -180,7 +203,12 @@ async update(id: number, dto: UpdateReportDto): Promise<{status:boolean, statusC
       orderNumber: report.machine?.orderNumber,
     };
 
-    return {status:true, statusCode: 200, message: 'Report updated successfully', data };
+    return {
+      status: true,
+      statusCode: 200,
+      message: 'Report updated successfully',
+      data,
+    };
   } catch (error) {
     throw new InternalServerErrorException('Something went wrong while updating the report');
   }

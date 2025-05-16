@@ -22,9 +22,9 @@ export class UsersController {
     return this.usersService.findOne(+id);
   }
 
-  @Put(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
-    return this.usersService.update(+id, dto);
+  @Put()
+  update( @Body() dto: UpdateUserDto) {
+    return this.usersService.update(dto);
   }
 
   @Delete(':id')

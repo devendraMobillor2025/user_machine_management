@@ -50,15 +50,20 @@ export class MachinesService {
     }
   }
 
- async update(id: number, dto: UpdateMachineDto) {
+ async update( dto: UpdateMachineDto) {
+  const{machineId,...rest}=dto
+  const updatePayload={...rest}
+  if (!machineId) {
+      return { status: false, statusCode: 400, message: 'machineId is required in body' };
+    }
   try {
-    const result = await this.machineRepo.update(id, dto);
+    const result = await this.machineRepo.update(machineId, updatePayload);
 
     if (result.affected === 0) {
       throw new NotFoundException('Machine not found or no changes detected');
     }
 
-    const machine = await this.findOne(id);
+    const machine = await this.findOne(machineId);
 
     return {
       status:true,
