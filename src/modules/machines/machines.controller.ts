@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, BadRequestException } from '@nestjs/common';
 import { MachinesService } from './machines.service';
 import { CreateMachineDto } from './dto/create-machine.dto';
 import { UpdateMachineDto } from './dto/update-machine.dto';
@@ -19,6 +19,9 @@ export class MachinesController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
+     if (!id || isNaN(+id)) {
+        throw new BadRequestException('Valid numeric id is required');
+      }
     return this.machinesService.findOne(+id);
   }
 
@@ -29,6 +32,9 @@ export class MachinesController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
+     if (!id || isNaN(+id)) {
+    throw new BadRequestException('Valid numeric id is required');
+  }
     return this.machinesService.remove(+id);
   }
 }

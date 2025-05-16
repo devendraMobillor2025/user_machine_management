@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, BadRequestException } from '@nestjs/common';
 import { ActivitiesService } from './activities.service';
 import { CreateActivityDto } from './dto/create-activity.dto';
 import { UpdateActivityDto } from './dto/update-activity.dto';
@@ -19,6 +19,9 @@ export class ActivitiesController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
+    if (!id || isNaN(+id)) {
+    throw new BadRequestException('Valid numeric id is required');
+  }
     return this.activitiesService.findOne(+id);
   }
 
@@ -29,6 +32,9 @@ export class ActivitiesController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
+     if (!id || isNaN(+id)) {
+    throw new BadRequestException('Valid numeric id is required');
+  }
     return this.activitiesService.remove(+id);
   }
 }
