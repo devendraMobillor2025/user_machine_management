@@ -16,12 +16,12 @@ export class ActivitiesService {
     try {
       const existingActivity = await this.activityRepo.findOneBy({ activityName: dto.activityName });
       if (existingActivity) {
-        return { statusCode: 409, message: 'Activity already exists' };
+        return {status:false, statusCode: 409, message: 'Activity already exists' };
       }
       const activity = this.activityRepo.create(dto);
 
      const savedActivity = await this.activityRepo.save(activity);
-     return { statusCode: 201, message: 'Activity created successfully', data: savedActivity };
+     return {status:true, statusCode: 201, message: 'Activity created successfully', data: savedActivity };
     } catch (error) {
       throw new InternalServerErrorException('something went wrong while creating activity');
     }
@@ -30,7 +30,10 @@ export class ActivitiesService {
   async findAll() {
     try {
       const activities = await this.activityRepo.find();
-      return { statusCode: 200, message: 'Activities retrieved successfully', data: activities };
+      if(!activities){
+         return {status:false, statusCode: 200, message: 'Activities retrieved no activity found ',}
+      }
+      return {status:true, statusCode: 200, message: 'Activities retrieved successfully', data: activities };
     } catch (error) {
       throw new InternalServerErrorException('something went wrong while retrieving activities');
     }
@@ -40,9 +43,9 @@ export class ActivitiesService {
     try {
       const activity = await this.activityRepo.findOneBy({ activityId: id });
       if (!activity) {
-        return { statusCode: 404, message: 'Activity not found' };
+        return {status:false, statusCode: 404, message: 'Activity not found' };
       }
-      return { statusCode: 200, message: 'Activity retrieved successfully', data: activity };
+      return {status:true, statusCode: 200, message: 'Activity retrieved successfully', data: activity };
     } catch (error) {
       throw new InternalServerErrorException('something went wrong while retrieving activity');
     }
@@ -50,9 +53,13 @@ export class ActivitiesService {
 
   async update(id: number, dto: UpdateActivityDto) {
     try {
+      const updatedActivity = await this.findOne(id);
+       if (!updatedActivity) {
+        return {status:false, statusCode: 404, message: 'Activity not found' };
+      }
       await this.activityRepo.update(id, dto);
-    const updatedActivity = await this.findOne(id);
-    return { statusCode: 200, message: 'Activity updated successfully', data: updatedActivity };
+   
+    return {status:true, statusCode: 200, message: 'Activity updated successfully', data: updatedActivity };
     } catch (error) {
       throw new InternalServerErrorException('something went wrong while updating activity');
     }
@@ -63,10 +70,10 @@ export class ActivitiesService {
     try {
       const activity = await this.activityRepo.findOneBy({ activityId: id });
       if (!activity) {
-        return { statusCode: 404, message: 'Activity not found' };
+        return {status:false, statusCode: 404, message: 'Activity not found' };
       }
       await this.activityRepo.delete(id);
-      return { statusCode: 200, message: 'Activity removed successfully' };
+      return {status:true, statusCode: 200, message: 'Activity removed successfully' };
     } catch (error) {
       throw new InternalServerErrorException('something went wrong while removing activity');
     }

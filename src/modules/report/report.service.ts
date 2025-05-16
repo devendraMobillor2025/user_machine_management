@@ -24,13 +24,13 @@ export class ReportService {
     // Check if the user exists
     const user = await this.userRepo.findOneBy({ userId: dto.userId });
     if (!user) {
-      return { statusCode: 404, message: 'User not found' };
+      return {status:false, statusCode: 404, message: 'User not found' };
     }
 
     // Check if the machine exists
     const machine = await this.machineRepo.findOneBy({ machineId: dto.machineId });
     if (!machine) {
-      return { statusCode: 404, message: 'Machine not found' };
+      return {status:false, statusCode: 404, message: 'Machine not found' };
     }
 
     // Create and save the report
@@ -38,6 +38,7 @@ export class ReportService {
     await this.reportRepo.save(report);
 
     return {
+      status:true,
       statusCode: 201,
       message: 'Report created successfully',
       data: report,
@@ -73,6 +74,7 @@ const reports = await this.reportRepo.manager.query(`
 
     if (!reports || reports.length === 0) {
       return {
+        status:false,
         statusCode: HttpStatus.NOT_FOUND,
         success: false,
         message: 'No reports found',
@@ -81,6 +83,7 @@ const reports = await this.reportRepo.manager.query(`
     }
 
     return {
+      status:true,
       statusCode: HttpStatus.OK,
       success: true,
       message: 'Reports retrieved successfully',
@@ -96,7 +99,7 @@ const reports = await this.reportRepo.manager.query(`
   }
 }
 
- async findOne(id: number): Promise<{ statusCode: number; message: string; data?: any }> {
+ async findOne(id: number): Promise<{status:boolean, statusCode: number; message: string; data?: any }> {
   try {
     const report = await this.reportRepo.findOne({
       where: { reportOfTimeSpentId: id },
@@ -104,7 +107,7 @@ const reports = await this.reportRepo.manager.query(`
     });
 
     if (!report) {
-      return { statusCode: 404, message: 'Report not found' };
+      return {status:false, statusCode: 404, message: 'Report not found' };
     }
 
     // Structure the response
@@ -128,24 +131,24 @@ const reports = await this.reportRepo.manager.query(`
       
     };
 
-    return { statusCode: 200, message: 'Report retrieved successfully', data };
+    return {status:true, statusCode: 200, message: 'Report retrieved successfully', data };
   } catch (error) {
     throw new InternalServerErrorException('Something went wrong while retrieving report');
   }
 }
 
 
-async update(id: number, dto: UpdateReportDto): Promise<{ statusCode: number; message: string; data?: any }> {
+async update(id: number, dto: UpdateReportDto): Promise<{status:boolean, statusCode: number; message: string; data?: any }> {
   try {
     const report = await this.reportRepo.findOne({ where: { reportOfTimeSpentId: id } });
     if (!report) {
-      return { statusCode: 404, message: 'Report not found' };
+      return {status:false, statusCode: 404, message: 'Report not found' };
     }
 
     if (dto.userId) {
       const user = await this.userRepo.findOne({ where: { userId: dto.userId } });
       if (!user) {
-        return { statusCode: 404, message: 'User not found' };
+        return {status:false, statusCode: 404, message: 'User not found' };
       }
       report.user = user;
     }
@@ -153,7 +156,7 @@ async update(id: number, dto: UpdateReportDto): Promise<{ statusCode: number; me
     if (dto.machineId) {
       const machine = await this.machineRepo.findOne({ where: { machineId: dto.machineId } });
       if (!machine) {
-        return { statusCode: 404, message: 'Machine not found' };
+        return {status:false, statusCode: 404, message: 'Machine not found' };
       }
       report.machine = machine;
     }
@@ -177,22 +180,22 @@ async update(id: number, dto: UpdateReportDto): Promise<{ statusCode: number; me
       orderNumber: report.machine?.orderNumber,
     };
 
-    return { statusCode: 200, message: 'Report updated successfully', data };
+    return {status:true, statusCode: 200, message: 'Report updated successfully', data };
   } catch (error) {
     throw new InternalServerErrorException('Something went wrong while updating the report');
   }
 }
 
 
-async remove(id: number): Promise<{ statusCode: number; message: string }> {
+async remove(id: number): Promise<{status:boolean, statusCode: number; message: string }> {
   try {
     const report = await this.reportRepo.findOne({ where: { reportOfTimeSpentId: id } });
     if (!report) {
-      return { statusCode: 404, message: 'Report not found' };
+      return {status:false, statusCode: 404, message: 'Report not found' };
     }
 
     await this.reportRepo.delete(id);
-    return { statusCode: 200, message: 'Report removed successfully' };
+    return {status:true, statusCode: 200, message: 'Report removed successfully' };
   } catch (error) {
     throw new InternalServerErrorException('Something went wrong while removing the report');
   }
@@ -203,7 +206,7 @@ async findByUserMachineActivity(
   userId?: number, 
   machineId?: number, 
   date?: string
-): Promise<{ statusCode: number; message: string; data?: any }> {
+): Promise<{status:boolean, statusCode: number; message: string; data?: any }> {
   try {
     const where: any = {};
     if (userId !== undefined) where.userId = userId;
@@ -213,7 +216,7 @@ async findByUserMachineActivity(
     const report = await this.reportRepo.findOne({ where, relations: ['user', 'machine'] });
 
     if (!report) {
-      return { statusCode: 404, message: 'No report found matching criteria' };
+      return {status:false, statusCode: 404, message: 'No report found matching criteria' };
     }
 
     // Optionally structure the data as you want
@@ -237,7 +240,7 @@ async findByUserMachineActivity(
       
     };
 
-    return { statusCode: 200, message: 'Report retrieved successfully', data };
+    return {status:true, statusCode: 200, message: 'Report retrieved successfully', data };
   } catch (error) {
     throw new InternalServerErrorException('Something went wrong while retrieving reports');
   }

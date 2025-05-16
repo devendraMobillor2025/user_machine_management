@@ -16,11 +16,11 @@ export class MachinesService {
    try {
      const existingMachine = await this.machineRepo.findOneBy({ machineCode: dto.machineCode });
     if (existingMachine) {
-      throw new ConflictException('Machine already exists');
+     return {status:false, statusCode: 409, message: 'Machine already exists', data: [] };;
     }
     const machine = this.machineRepo.create(dto);
     const savedMachine = await this.machineRepo.save(machine);
-    return { statusCode: 201, message: 'Machine created successfully', data: savedMachine };
+    return {status:true, statusCode: 201, message: 'Machine created successfully', data: savedMachine };
    } catch (error) {
      throw new InternalServerErrorException('something went wrong while creating machine');
    }
@@ -30,9 +30,9 @@ export class MachinesService {
     try {
       const machines= await this.machineRepo.find();
       if (!machines) {
-        return { statusCode: 404, message: 'No machines found', data: [] };
+        return {status:false, statusCode: 404, message: 'No machines found', data: [] };
       }
-      return { statusCode: 200, message: 'Machines retrieved successfully', data: machines };
+      return {status:true, statusCode: 200, message: 'Machines retrieved successfully', data: machines };
     } catch (error) {
       throw new InternalServerErrorException('something went wrong while retrieving machines');
     }
@@ -42,9 +42,9 @@ export class MachinesService {
     try {
       const machine = await this.machineRepo.findOneBy({ machineId: id });
       if (!machine) {
-        return { statusCode: 404, message: 'Machine not found' };
+        return {status:false, statusCode: 404, message: 'Machine not found' };
       }
-      return { statusCode: 200, message: 'Machine retrieved successfully', data: machine };
+      return {status:true, statusCode: 200, message: 'Machine retrieved successfully', data: machine };
     } catch (error) {
       throw new InternalServerErrorException('something went wrong while retrieving machine');
     }
@@ -61,6 +61,7 @@ export class MachinesService {
     const machine = await this.findOne(id);
 
     return {
+      status:true,
       statusCode: 200,
       message: 'Machine updated successfully',
       data: machine,
@@ -78,10 +79,10 @@ export class MachinesService {
     try {
       const machine = await this.machineRepo.findOneBy({ machineId: id });
       if (!machine) {
-        return { statusCode: 404, message: 'Machine not found' };
+        return {status:false, statusCode: 404, message: 'Machine not found' };
       }
       await this.machineRepo.delete(id);
-      return { statusCode: 200, message: 'Machine removed successfully' };
+      return {status:true, statusCode: 200, message: 'Machine removed successfully' };
     } catch (error) {
       throw new InternalServerErrorException('something went wrong while removing machine');
     }

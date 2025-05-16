@@ -31,20 +31,20 @@ async create(dto: CreateMachineUserMapDto) {
     // Check if machine exists
     const machineExists = await this.machineRepo.findOneBy({ machineId: dto.machineId });
     if (!machineExists) {
-      throw new NotFoundException(`Machine with id ${dto.machineId} not found`);
+      return {status:false,statusCode:404,message:(`Machine with id ${dto.machineId} not found`)}
     }
 
     // Check if mapping already exists
     const existingMap = await this.machineUserMapRepo.findOneBy({ machineId: dto.machineId, userId: dto.userId });
     if (existingMap) {
-      throw new ConflictException('Machine and User mapping already exists');
+        return {status:false,statusCode:409,message:'Machine and User mapping already exists'};
     }
 
     // Create and save new mapping
     const machineUserMap = this.machineUserMapRepo.create(dto);
     const savedMap = await this.machineUserMapRepo.save(machineUserMap);
 
-    return { statusCode: 201, message: 'Machine and User mapping created successfully', data: savedMap };
+    return {status:false, statusCode: 201, message: 'Machine and User mapping created successfully', data: savedMap };
   } catch (error) {
     if (error instanceof NotFoundException || error instanceof ConflictException) {
       throw error;
@@ -60,7 +60,7 @@ async create(dto: CreateMachineUserMapDto) {
     });
 
     if (!mappings || mappings.length === 0) {
-      return { statusCode: 404, message: 'No mappings found', data: [] };
+      return {status:false, statusCode: 404, message: 'No mappings found', data: [] };
     }
 
     // Structure data into one object per mapping
@@ -77,14 +77,14 @@ async create(dto: CreateMachineUserMapDto) {
       orderNumber: map.machine?.orderNumber,
     }));
 
-    return { statusCode: 200, message: 'Mappings retrieved successfully', data };
+    return {status:true, statusCode: 200, message: 'Mappings retrieved successfully', data };
   } catch (error) {
     throw new InternalServerErrorException('Something went wrong while retrieving mappings');
   }
 }
 
 
-async findOne(id: number): Promise<{ statusCode: number; message: string; data?: any }> {
+async findOne(id: number): Promise<{status:boolean, statusCode: number; message: string; data?: any }> {
   try {
     const mapping = await this.machineUserMapRepo.findOne({
       where: { machineAndUserMapId: id },
@@ -92,7 +92,7 @@ async findOne(id: number): Promise<{ statusCode: number; message: string; data?:
     });
 
     if (!mapping) {
-      return { statusCode: 404, message: 'Mapping not found' };
+      return {status:false, statusCode: 404, message: 'Mapping not found' };
     }
 
     const data = {
@@ -109,6 +109,7 @@ async findOne(id: number): Promise<{ statusCode: number; message: string; data?:
     };
 
     return {
+      status:true,
       statusCode: 200,
       message: 'Mapping retrieved successfully',
       data,
@@ -127,7 +128,7 @@ async findByMachineId(machineId: number) {
     });
 
     if (!mappings || mappings.length === 0) {
-      return { statusCode: 404, message: 'No mappings found for this machine', data: [] };
+      return {status:false, statusCode: 404, message: 'No mappings found for this machine', data: [] };
     }
 
     const data = mappings.map((map) => ({
@@ -143,7 +144,7 @@ async findByMachineId(machineId: number) {
       orderNumber: map.machine?.orderNumber,
     }));
 
-    return { statusCode: 200, message: 'Mappings retrieved successfully', data };
+    return {status:true, statusCode: 200, message: 'Mappings retrieved successfully', data };
   } catch (error) {
     throw new InternalServerErrorException('Something went wrong while retrieving mappings');
   }
@@ -156,7 +157,7 @@ async findByUserId(userId: number) {
     });
 
     if (!mappings || mappings.length === 0) {
-      return { statusCode: 404, message: 'No mappings found for this user', data: [] };
+      return {status:false, statusCode: 404, message: 'No mappings found for this user', data: [] };
     }
 
     const data = mappings.map((map) => ({
@@ -172,7 +173,7 @@ async findByUserId(userId: number) {
       orderNumber: map.machine?.orderNumber,
     }));
 
-    return { statusCode: 200, message: 'Mappings retrieved successfully', data };
+    return {status:true, statusCode: 200, message: 'Mappings retrieved successfully', data };
   } catch (error) {
     throw new InternalServerErrorException('Something went wrong while retrieving mappings');
   }
@@ -184,13 +185,13 @@ async update(id: number, dto: UpdateMachineUserMapDto) {
     // Check if user exists
     const user = await this.userRepo.findOneBy({ userId: dto.userId });
     if (!user) {
-      return { statusCode: 404, message: `User with id ${dto.userId} not found` };
+      return {status:false, statusCode: 404, message: `User with id ${dto.userId} not found` };
     }
 
     // Check if machine exists
     const machine = await this.machineRepo.findOneBy({ machineId: dto.machineId });
     if (!machine) {
-      return { statusCode: 404, message: `Machine with id ${dto.machineId} not found` };
+      return {status:false, statusCode: 404, message: `Machine with id ${dto.machineId} not found` };
     }
 
     // Check if mapping exists
@@ -202,7 +203,7 @@ async update(id: number, dto: UpdateMachineUserMapDto) {
     // Update the mapping
     const updateResult = await this.machineUserMapRepo.update(id, dto);
     if (updateResult.affected === 0) {
-      return { statusCode: 500, message: 'Mapping update failed' };
+      return {status:false, statusCode: 500, message: 'Mapping update failed' };
     }
 
     const updated = await this.machineUserMapRepo.findOne({
@@ -211,7 +212,7 @@ async update(id: number, dto: UpdateMachineUserMapDto) {
 });
 
 if (!updated) {
-  return { statusCode: 404, message: 'Mapping not found after update' };
+  return {status:false, statusCode: 404, message: 'Mapping not found after update' };
 }
 
 // now safe to access updated properties
@@ -228,6 +229,7 @@ const result = {
 
 
     return {
+      status:true,
       statusCode: 200,
       message: 'Mapping updated successfully',
       data: result,
@@ -244,10 +246,10 @@ const result = {
   try {
     const mappingResponse = await this.findOne(id);
     if (mappingResponse.statusCode === 404) {
-      return { statusCode: 404, message: 'Mapping not found' };
+      return {status:false, statusCode: 404, message: 'Mapping not found' };
     }
     await this.machineUserMapRepo.delete(id);
-    return { statusCode: 200, message: 'Mapping removed successfully' };
+    return {status:true, statusCode: 200, message: 'Mapping removed successfully' };
   } catch (error) {
     console.log('Error removing mapping:', error);
     throw new InternalServerErrorException('Something went wrong while removing mapping');

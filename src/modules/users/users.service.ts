@@ -13,16 +13,16 @@ export class UsersService {
     private userRepo: Repository<User>,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<{statusCode:number;message:string;data?: User}> {
+  async create(createUserDto: CreateUserDto): Promise<{status:boolean;statusCode:number;message:string;data?: User}> {
   try {
     const existingUser = await this.userRepo.findOneBy({ email: createUserDto.email ,userName:createUserDto.userName});
     if (existingUser) {
-      return { statusCode: 409, message: 'Email or username already exists' };
+      return {status:false, statusCode: 409, message: 'Email or username already exists' };
     }
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
     const newUser = this.userRepo.create({ ...createUserDto, password: hashedPassword });
     const savedUser = await this.userRepo.save(newUser);
-    return { statusCode: 201, message: 'User created successfully', data: savedUser };
+    return {status:true, statusCode: 201, message: 'User created successfully', data: savedUser };
   } catch (error) {
     if(error instanceof ConflictException){
        throw error;
@@ -31,13 +31,13 @@ export class UsersService {
   }
   }
 
-  async findAll(): Promise<{statusCode:number ; message :string;data: User[]}> {
+  async findAll(): Promise<{status:boolean ,statusCode:number ; message :string;data: User[]}> {
     try {
       const users = await this.userRepo.find();
       if (!users) {
-        return { statusCode: 404, message: 'No users found', data: [] };
+        return { status:false,statusCode: 404, message: 'No users found', data: [] };
       }
-      return { statusCode: 200, message: 'Users retrieved successfully', data: users };
+      return {status:true, statusCode: 200, message: 'Users retrieved successfully', data: users };
     } catch (error) {
       if(error instanceof ConflictException){
        throw error;
@@ -46,12 +46,13 @@ export class UsersService {
     }
   }
 
-async findOne(id: number): Promise<{ statusCode: number; message: string; data?: User | null }> {
+async findOne(id: number): Promise<{status:boolean; statusCode: number; message: string; data?: User | null }> {
   try {
     const user = await this.userRepo.findOneBy({ userId: id });
 
     if (!user) {
       return {
+        status:false,
         statusCode: 404,
         message: 'User not found',
         data: null,
@@ -59,6 +60,7 @@ async findOne(id: number): Promise<{ statusCode: number; message: string; data?:
     }
 
     return {
+      status:true,
       statusCode: 200,
       message: 'User retrieved successfully',
       data: user,
@@ -70,7 +72,7 @@ async findOne(id: number): Promise<{ statusCode: number; message: string; data?:
 }
 
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<{statusCode:number;message:string ;data?:User | null}> {
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<{status:boolean;statusCode:number;message:string ;data?:User | null}> {
    try {
      if (updateUserDto.password) {
       updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
@@ -78,9 +80,9 @@ async findOne(id: number): Promise<{ statusCode: number; message: string; data?:
     await this.userRepo.update(id, updateUserDto);
     const updatedUser = await this.findOne(id);
     if (!updatedUser) {
-      return { statusCode: 404, message: 'User not found' };
+      return {status:false, statusCode: 404, message: 'User not found' };
     }
-    return { statusCode: 200, message: 'User updated successfully', data: updatedUser.data };
+    return { status:true ,statusCode: 200, message: 'User updated successfully', data: updatedUser.data };
 
    } catch (error) {
     if(error instanceof ConflictException){
@@ -91,17 +93,17 @@ async findOne(id: number): Promise<{ statusCode: number; message: string; data?:
   }
 
   
-async remove(id: number): Promise<{ statusCode: number; message: string }> {
+async remove(id: number): Promise<{status:boolean, statusCode: number; message: string }> {
   try {
     const user = await this.userRepo.findOneBy({ userId: id });
 
     if (!user) {
-      return { statusCode: 404, message: 'User not found' };
+      return {status:false, statusCode: 404, message: 'User not found' };
     }
 
     await this.userRepo.delete(id);
 
-    return { statusCode: 200, message: 'User removed successfully' };
+    return {status:true ,statusCode: 200, message: 'User removed successfully' };
   } catch (error) {
     if (
       error?.originalError?.info?.number === 547 ||  // SQL Server FK constraint violation
