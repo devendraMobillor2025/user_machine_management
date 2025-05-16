@@ -20,4 +20,13 @@ export class User {
 
   @Column()
   password: string;
+
+    @Column({ type: 'varchar', nullable: true }) // or just @Column({ nullable: true })
+  otpHash: string|null;
+
+  @Column({ type: 'datetime2', nullable: true })
+  otpExpiresAt: Date|null;
+
+  @Column({ default: false })
+  isOtpVerified: boolean;
 }
